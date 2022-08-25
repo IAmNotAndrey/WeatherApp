@@ -5,4 +5,5 @@
     <string name="main_btn">Узнать погоду</string>
     <string name="no_user_input">Введите текст</string>
     <string name="wait">Ожидайте...</string>
+    <string name="wait_error">Введённый город не был найден</string>
 </resources>

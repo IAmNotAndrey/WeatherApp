@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -30,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private Button main_btn;
     private TextView result_info;
 
+    private double mmHgCoef = 0.750063755419211; // Коэффицент перевода из hPa в mmHg
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
-                e.printStackTrace();
+                result_info.setText(R.string.wait_error);
             } finally {
                 if (connection != null)
                     connection.disconnect();
@@ -99,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-
             return null;
         }
 
@@ -117,17 +118,20 @@ public class MainActivity extends AppCompatActivity {
 
                 String rDescription = weather.getString("description");
                 String description = rDescription.substring(0, 1).toUpperCase() + rDescription.substring(1);
-                double temp = main.getDouble("temp");
-                double feels_like = main.getDouble("feels_like");
-                double pressure = 0.75 * main.getInt("pressure");
+                int temp = (int) Math.round(main.getDouble("temp"));
+                int feels_like = (int) Math.round(main.getDouble("feels_like"));
+                // FIXME: давление вероятнее всего показывается прямо над уровнем моря, так как оно больше, чем в реалиях города
+                int pressure = (int) Math.round(mmHgCoef * main.getInt("pressure"));
 
                 result_info.setText(
                         description + "\n" +
-                        "Температура: " + temp + "\n" +
-                        "Чувствуется как: " + feels_like + "\n" +
+                        "Температура: " + temp + "°C" + "\n" +
+                        "Чувствуется как: " + feels_like + "°C" + "\n" +
                         "Давление: " + pressure + " мм рт ст" + "\n"
                 );
             } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (RuntimeException e) {
                 e.printStackTrace();
             }
         }
